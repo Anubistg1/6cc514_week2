@@ -71,6 +71,8 @@ real_start:
 
  	movb	(boot_device), %dl	# Pass boot device ID to second stage
     movw    $0x9000, %ax        # Jump to stage 2
+    cmp     $0, (%bx)           # Compares test byte to 0 to check code is present
+    jz      read_failed         # jumps to error message if there is no code in register 
     jmp     *%ax
 
 read_failed:	                # Display error messages

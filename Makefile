@@ -54,9 +54,10 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
-xv6.img: bootblock
+xv6.img: bootblock bootblock2
 	dd if=/dev/zero of=xv6.img count=10000
 	dd if=bootblock of=xv6.img conv=notrunc
+	dd if=bootblock2 of=xv6.img seek=1 conv=notrunc
 
 bootblock: bootasm.S 
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c bootasm.S
@@ -64,12 +65,18 @@ bootblock: bootasm.S
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
 	./sign.pl bootblock
 
+bootblock2: bootasm2.S
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c bootasm2.S
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0x9000 -o bootblock2.o bootasm2.o 
+	$(OBJCOPY) -S -O binary -j .text bootblock2.o bootblock2
+	./sign.pl bootblock2
 
 .PRECIOUS: %.o
 
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
+	*.o *.d *.asm *.sym vectors.S bootblock2 entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs \
 	syscall.h syscalltable.h usys.S 
